@@ -29,9 +29,8 @@ result = my_query.execute()
 
 ### Usage with Quiver Cloud
 
-Quiver is a JIT compiler for GraphQL queries. It reduces the CPU effort
-to make the query to the maximum, similar performance as if you write the
-data retrieval by hand (0 overhead from GraphQL).
+Quiver is a JIT compiler for GraphQL queries. It helps to improve
+serialization time by a factor of 5~10x.
 
 Here is an example usage for Quiver:
 
