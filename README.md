@@ -36,7 +36,7 @@ Here is an example usage for Quiver:
 
 ```python
 from graphql_env import GraphQLEnvironment
-from graphql_env.backend.quiver_client import GraphQLQuiverCloudBackend
+from graphql_env.backend.quiver_cloud import GraphQLQuiverCloudBackend
 
 # schema = graphene.Schema(...)
 
