@@ -1,6 +1,6 @@
 # GraphQL-Env [![Build Status](https://travis-ci.org/graphql-python/graphql-env.svg?branch=master)](https://travis-ci.org/graphql-python/graphql-env) [![PyPI version](https://badge.fury.io/py/graphql-env.svg)](https://badge.fury.io/py/graphql-env) [![Coverage Status](https://coveralls.io/repos/graphql-python/graphql-env/badge.svg?branch=master&service=github)](https://coveralls.io/github/graphql-python/graphql-env?branch=master)
 
-GraphQL-Env provides a GraphQL environment with pluggable backends for Python GraphQL servers.
+GraphQL-Env provides a GraphQL environment with pluggable query optimizers (backends) for Python GraphQL servers.
 
 ## Installation
 
@@ -30,7 +30,8 @@ result = my_query.execute()
 ### Usage with Quiver Cloud
 
 Quiver is a JIT compiler for GraphQL queries. It reduces the CPU effort
-as if you make the data retrieval by hand.
+to make the query to the maximum, similar performance as if you write the
+data retrieval by hand (0 overhead from GraphQL).
 
 Here is an example usage for Quiver:
 
