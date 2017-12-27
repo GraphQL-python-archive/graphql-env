@@ -15,7 +15,7 @@ pip install graphql-env
 Here is one example for you to get started:
 
 ```python
-from graphql_env import GraphQLEnvironment
+from graphql_env import GraphQLEnv
 
 # schema = graphene.Schema(...)
 
@@ -36,7 +36,7 @@ data retrieval by hand (0 overhead from GraphQL).
 Here is an example usage for Quiver:
 
 ```python
-from graphql_env import GraphQLEnvironment
+from graphql_env import GraphQLEnv
 from graphql_env.backend.quiver_cloud import GraphQLQuiverCloudBackend
 
 # schema = graphene.Schema(...)

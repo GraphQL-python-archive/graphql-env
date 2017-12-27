@@ -3,7 +3,7 @@ from .utils import get_unique_schema_id, get_unique_query_id
 from .backend import GraphQLBackend, get_default_backend
 
 
-class GraphQLEnv(object):
+class GraphQLEnvironment(object):
     def __init__(self, schema, middleware=None, backend=None):
         self.schema = schema
         self.schema_id = get_unique_schema_id(schema)
