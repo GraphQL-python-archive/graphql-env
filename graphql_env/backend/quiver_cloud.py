@@ -26,8 +26,8 @@ mutation($schemaDsl: String!, $query: String!) {
 
 
 class GraphQLQuiverCloudBackend(GraphQLBackend):
-    def __init__(self, dsn, python_options=None):
-        super(GraphQLQuiverCloudBackend, self).__init__()
+    def __init__(self, dsn, python_options=None, **options):
+        super(GraphQLQuiverCloudBackend, self).__init__(**options)
         try:
             url = urlparse(dsn.strip())
         except:
@@ -74,7 +74,7 @@ class GraphQLQuiverCloudBackend(GraphQLBackend):
         code = str(code)
         return code
 
-    def get_document(self, environment, request_string, key):
+    def document_from_string(self, environment, request_string):
         schema = environment.schema
         source = self.generate_source(schema, request_string)
         filename = '<document>'

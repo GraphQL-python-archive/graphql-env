@@ -4,7 +4,7 @@ from .base import GraphQLBackend, GraphQLDocument
 
 
 class GraphQLCoreBackend(GraphQLBackend):
-    def get_document(self, environment, request_string, key):
+    def document_from_string(self, environment, request_string):
         return GraphQLCoreDocument(environment.schema, request_string)
 
 
