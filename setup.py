@@ -32,7 +32,7 @@ setup(
     author="Syrus Akbary",
     author_email='me@syrusakbary.com',
     url='https://github.com/graphql-python/graphql-env',
-    packages=find_packages(include=['graphql_env']),
+    packages=find_packages(),
     include_package_data=True,
     install_requires=requirements,
     license="MIT license",
