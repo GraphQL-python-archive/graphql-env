@@ -51,8 +51,8 @@ my_query = graphql_env.document_from_string('{ hello }')
 result = my_query.execute()
 ```
 
-**Note: Quiver Cloud is using `requests` under the hood. Systems like Google App Engine
-need a [monkeypatch to have it working properly](https://github.com/GoogleCloudPlatform/python-docs-samples/blob/master/appengine/standard/urlfetch/requests/main.py#L20-L26)**
+**Note: Quiver Cloud uses `requests` under the hood. Systems like Google App Engine will
+need a [monkeypatch to requests in order to work properly](https://github.com/GoogleCloudPlatform/python-docs-samples/blob/master/appengine/standard/urlfetch/requests/main.py#L20-L26).**
 
 ## Contributing
 

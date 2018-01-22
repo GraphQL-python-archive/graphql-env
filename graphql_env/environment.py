@@ -1,5 +1,6 @@
-from .backend import GraphQLBackend, get_default_backend
+from .backend import GraphQLBackend, get_default_backend, GraphQLDocument
 from .utils import get_unique_query_id, get_unique_schema_id
+from ._compat import string_types
 
 
 class GraphQLEnvironment(object):
@@ -32,7 +33,14 @@ class GraphQLEnvironment(object):
         if not self.store:
             raise Exception(
                 "The GraphQL Environment doesn't have set any store.")
-        try:
-            return self.store[query_id]
-        except KeyError:
-            return None
+
+        document = self.store[query_id]
+
+        if isinstance(document, string_types):
+            return self.document_from_string(document)
+        elif isinstance(document, GraphQLDocument):
+            return document
+
+        raise Exception(
+            "Document returned from the store must be an string or a GraphQLDocument. Received {}.".
+            format(repr(document)))
