@@ -1,5 +1,6 @@
-from graphql import execute, parse, validate
+from graphql import execute, parse, validate, GraphQLError
 from graphql.execution import ExecutionResult
+from graphql.language import ast
 
 from .base import GraphQLBackend, GraphQLDocument
 
@@ -7,6 +8,14 @@ from .base import GraphQLBackend, GraphQLDocument
 class GraphQLCoreBackend(GraphQLBackend):
     def document_from_string(self, environment, request_string):
         return GraphQLCoreDocument(environment.schema, request_string)
+
+
+def get_operation_from_operation_name(document_ast, operation_name):
+    for definition in document_ast.definitions:
+        if isinstance(definition, ast.OperationDefinition):
+            if not operation_name or definition.name and definition.name.value == operation_name:
+                return definition.operation
+    return None
 
 
 class GraphQLCoreDocument(GraphQLDocument):
@@ -32,8 +41,14 @@ class GraphQLCoreDocument(GraphQLDocument):
                 allowed_operations=None,
                 **extra):
         if self.errors:
-            return ExecutionResult(errors=self.errors)
+            return ExecutionResult(errors=self.errors, invalid=True)
         try:
+            operation_type = get_operation_from_operation_name(
+                self.document_ast, operation_name)
+            # raise Exception(operation_name)
+            if operation_type and operation_type not in allowed_operations:
+                raise GraphQLError(
+                    "{} operations are not allowed.".format(operation_type))
             return execute(
                 self.schema,
                 self.document_ast,
