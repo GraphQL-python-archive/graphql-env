@@ -1,6 +1,7 @@
 from .backend import GraphQLBackend, get_default_backend, GraphQLDocument
 from .utils import get_unique_query_id, get_unique_schema_id
 from ._compat import string_types
+from .params import GraphQLParams
 
 
 class GraphQLEnvironment(object):
@@ -44,3 +45,27 @@ class GraphQLEnvironment(object):
         raise Exception(
             "Document returned from the store must be an string or a GraphQLDocument. Received {}.".
             format(repr(document)))
+
+    def get_document_from_params(self, params):
+        if params.query_id:
+            return self.load_document(params.query_id)
+        return self.document_from_string(params.query)
+
+    def __call__(self,
+                 graphql_params,
+                 root=None,
+                 context=None,
+                 middleware=None,
+                 allowed_operations=None):
+        assert isinstance(
+            graphql_params, GraphQLParams
+        ), "GraphQL params must be an instance of GraphQLParams."
+
+        document = self.get_document_from_params(graphql_params)
+        return document.execute(
+            root=root,
+            context=context,
+            middleware=middleware,
+            operation_name=graphql_params.operation_name,
+            variables=graphql_params.variables,
+            allowed_operations=allowed_operations)

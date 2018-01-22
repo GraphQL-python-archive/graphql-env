@@ -6,9 +6,9 @@ from graphql.error import GraphQLError, format_error as default_format_error
 from graphql.execution import ExecutionResult
 from flask import jsonify, request
 
-from .base import GraphQLParams
 from .graphiql import render_graphiql
 from .exceptions import GraphQLHTTPError, InvalidJSONError, HTTPMethodNotAllowed
+from .utils import params_from_http_request
 
 
 def can_display_graphiql(request):
@@ -25,7 +25,7 @@ def can_display_graphiql(request):
         request.accept_mimetypes['application/json']
 
 
-def get_graphql_params(request, base_class=GraphQLParams):
+def get_graphql_params(request):
     data = {}
     content_type = request.mimetype
     if content_type == 'application/graphql':
@@ -40,7 +40,7 @@ def get_graphql_params(request, base_class=GraphQLParams):
         data = request.form.to_dict()
 
     query_params = request.args.to_dict()
-    return base_class.from_http_request(query_params, data)
+    return params_from_http_request(query_params, data)
 
 
 ALL_OPERATIONS = set(("query", "mutation", "subscription"))
@@ -53,12 +53,6 @@ def get_allowed_operations(request):
 
 
 Request = object()
-
-
-def get_document_from_params(environment, params):
-    if params.query_id:
-        return environment.load_document(params.query_id)
-    return environment.document_from_string(params.query)
 
 
 def execution_result_to_dict(execution_result, format_error):
@@ -77,7 +71,7 @@ def default_serialize(execution_result, format_error=default_format_error):
     return jsonify(data)  #, 200 if execution_result.errors else 400
 
 
-def graphql_view(environment,
+def graphql_view(execute,
                  root=None,
                  graphiql=False,
                  context=Request,
@@ -91,17 +85,13 @@ def graphql_view(environment,
         if request.method not in ['GET', 'POST']:
             raise HTTPMethodNotAllowed()
         graphql_params = get_graphql_params(request)
-        # print("a", graphql_params.query)
-        document = get_document_from_params(environment, graphql_params)
         if context is Request:
             context = request
-        execution_result = document.execute(
+        execution_result = execute(
+            graphql_params,
             root=root,
             context=context,
             middleware=middleware,
-            # extensions=[],
-            operation_name=graphql_params.operation_name,
-            variables=graphql_params.variables,
             allowed_operations=allowed_operations)
     except Exception as error:
         if isinstance(error, GraphQLHTTPError):
@@ -110,5 +100,8 @@ def graphql_view(environment,
 
     if graphiql and can_display_graphiql(request):
         return render_graphiql(graphql_params, execution_result)
+
+    if execution_result.data is None and execution_result.errors:
+        status = 400
 
     return serialize(execution_result), status
