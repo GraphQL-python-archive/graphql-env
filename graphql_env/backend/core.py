@@ -6,8 +6,8 @@ from .base import GraphQLBackend, GraphQLDocument
 
 
 class GraphQLCoreBackend(GraphQLBackend):
-    def document_from_string(self, environment, request_string):
-        return GraphQLCoreDocument(environment.schema, request_string)
+    def document_from_string(self, schema, request_string):
+        return GraphQLCoreDocument(schema, request_string)
 
 
 def get_operation_from_operation_name(document_ast, operation_name):

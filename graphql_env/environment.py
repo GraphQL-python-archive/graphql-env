@@ -23,7 +23,7 @@ class GraphQLEnvironment(object):
         """
         key = (self.schema_key, get_unique_query_id(source))
         query = self.backend.document_from_cache_or_string(
-            self, source, key=key)
+            self.schema, source, key=key)
         return query
 
     def load_document(self, query_id):

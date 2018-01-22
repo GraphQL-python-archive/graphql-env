@@ -4,19 +4,19 @@ class GraphQLBackend(object):
             cache = {}
         self._cache = cache
 
-    def document_from_cache_or_string(self, environment, request_string, key):
+    def document_from_cache_or_string(self, schema, request_string, key):
         '''This method should return a GraphQLQuery'''
         if not key or self._cache is None:
             # We return without caching
-            return self.document_from_string(environment, request_string)
+            return self.document_from_string(schema, request_string)
 
         if key not in self._cache:
             self._cache[key] = self.document_from_string(
-                environment, request_string)
+                schema, request_string)
 
         return self._cache[key]
 
-    def document_from_string(self, environment, request_string):
+    def document_from_string(self, schema, request_string):
         raise NotImplementedError(
             "document_from_string method not implemented in {}.".format(
                 self.__class__))

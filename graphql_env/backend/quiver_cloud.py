@@ -74,8 +74,7 @@ class GraphQLQuiverCloudBackend(GraphQLBackend):
         code = str(code)
         return code
 
-    def document_from_string(self, environment, request_string):
-        schema = environment.schema
+    def document_from_string(self, schema, request_string):
         source = self.generate_source(schema, request_string)
         filename = '<document>'
         code = compile(source, filename, 'exec')
