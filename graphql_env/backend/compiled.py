@@ -1,11 +1,13 @@
 class GraphQLCompiledDocument(object):
     @classmethod
-    def from_code(cls, schema, code, uptodate=None):
+    def from_code(cls, schema, code, uptodate=None, extra_namespace=None):
         """Creates a GraphQLQuery object from compiled code and the globals.  This
         is used by the loaders and schema to create a template object.
         """
         namespace = {'__file__': code.co_filename}
         exec (code, namespace)
+        if extra_namespace:
+            namespace.update(extra_namespace)
         rv = cls._from_namespace(schema, namespace)
         rv._uptodate = uptodate
         return rv

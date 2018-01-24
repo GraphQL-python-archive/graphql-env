@@ -47,6 +47,14 @@ class GraphQLQuiverCloudBackend(GraphQLBackend):
                                       path)
         self.public_key = url.username
         self.secret_key = url.password
+        self.extra_namespace = {}
+        if python_options is None:
+            python_options = {}
+        wait_for_promises = python_options.pop('wait_for_promises', None)
+        if wait_for_promises:
+            assert callable(
+                wait_for_promises), "wait_for_promises must be callable."
+            self.extra_namespace['wait_for_promises'] = wait_for_promises
         self.python_options = python_options
 
     def make_post_request(self, url, auth, json_payload):
@@ -79,5 +87,6 @@ class GraphQLQuiverCloudBackend(GraphQLBackend):
         filename = '<document>'
         code = compile(source, filename, 'exec')
         uptodate = lambda: True
-        document = GraphQLCompiledDocument.from_code(schema, code, uptodate)
+        document = GraphQLCompiledDocument.from_code(schema, code, uptodate,
+                                                     self.extra_namespace)
         return document
