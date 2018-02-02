@@ -7,7 +7,8 @@ __version__ = '0.1.0'
 
 from .environment import GraphQLEnvironment
 from .backend import (GraphQLBackend, GraphQLDocument, GraphQLCoreBackend,
-                      get_default_backend, set_default_backend)
+                      GraphQLDeciderBackend, get_default_backend,
+                      set_default_backend)
 
 GraphQLEnv = GraphQLEnvironment
 
@@ -17,6 +18,7 @@ __all__ = [
     'GraphQLBackend',
     'GraphQLDocument',
     'GraphQLCoreBackend',
+    'GraphQLDeciderBackend',
     'get_default_backend',
     'set_default_backend',
 ]

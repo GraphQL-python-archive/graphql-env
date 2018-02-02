@@ -19,13 +19,13 @@ class GraphQLEnvironment(object):
         self.schema_key = get_unique_schema_id(schema)
 
     def document_from_string(self, source):
-        """Load a query from a string. This parses the source given and
-        returns a :class:`GraphQLQuery` object.
+        """Load a document from a string. This parses the source given and
+        returns a :class:`GraphQLDocument` object.
         """
         key = (self.schema_key, get_unique_query_id(source))
-        query = self.backend.document_from_cache_or_string(
+        document = self.backend.document_from_cache_or_string(
             self.schema, source, key=key)
-        return query
+        return document
 
     def load_document(self, query_id):
         """
