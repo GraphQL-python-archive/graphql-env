@@ -14,16 +14,16 @@ class GraphQLDeciderBackend(GraphQLBackend):
             cache=cache, use_cache=use_cache)
 
     def document_from_cache_or_string(self, schema, request_string, key):
-        if self._cache and key in self._cache:
-            return self._cache[key]
+        cached_document = self.document_from_cache(key)
+        if cached_document:
+            return cached_document
 
         for backend in self.backends:
             try:
                 document = backend.document_from_cache_or_string(
                     schema, request_string, key)
                 # If no error has been raised, we are ok :)
-                if self._cache is not None:
-                    self._cache[key] = document
+                self.document_to_cache(key, document)
                 return document
             except Exception:
                 continue

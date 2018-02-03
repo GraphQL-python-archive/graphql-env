@@ -1,6 +1,7 @@
 from .base import GraphQLBackend, GraphQLDocument
 from .core import GraphQLCoreBackend
 from .decider import GraphQLDeciderBackend
+from .threaded import GraphQLThreadedLazyBackend
 
 _default_backend = GraphQLCoreBackend()
 
@@ -22,6 +23,7 @@ __all__ = [
     'GraphQLDocument',
     'GraphQLCoreBackend',
     'GraphQLDeciderBackend',
+    'GraphQLThreadedLazyBackend',
     'get_default_backend',
     'set_default_backend',
 ]

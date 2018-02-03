@@ -4,8 +4,12 @@
 
 import pytest
 
-from graphql_env import GraphQLEnv, GraphQLBackend, GraphQLCoreBackend, GraphQLDocument, GraphQLDeciderBackend
+from graphql_env import (GraphQLEnv, GraphQLBackend, GraphQLCoreBackend,
+                         GraphQLDocument, GraphQLDeciderBackend,
+                         GraphQLThreadedLazyBackend)
 from graphql.execution.executors.sync import SyncExecutor
+from threading import Event
+from time import sleep
 from .schema import schema
 
 
@@ -72,12 +76,16 @@ class FakeBackend(GraphQLBackend):
     reached = False
 
     def __init__(self, raises=False):
+        super(FakeBackend, self).__init__()
         self.raises = raises
 
-    def document_from_cache_or_string(self, *args, **kwargs):
+    def document_from_cache_or_string(self, schema, request_string, key):
         self.reached = True
         if self.raises:
             raise Exception("Backend failed")
+        document = GraphQLDocument()
+        self._cache[key] = document
+        return document
 
     def reset(self):
         self.reached = False
@@ -146,3 +154,32 @@ def test_decider_backend_use_cache_if_provided():
     backend1.reset()
     graphql_env.document_from_string('{ hello }')
     assert not backend1.reached
+
+
+def test_graphql_threaded_backend():
+    e = Event()
+    e2 = Event()
+
+    class LockBackend(FakeBackend):
+        def document_from_cache_or_string(self, schema, request_string, key):
+            sleep(.1)
+            document = super(LockBackend, self).document_from_cache_or_string(
+                schema, request_string, key)
+            e.set()
+            # e2.wait()
+            return document
+
+    backend = LockBackend()
+    graphql_env = GraphQLEnv(
+        schema=schema, backend=GraphQLThreadedLazyBackend(backend))
+
+    with pytest.raises(Exception) as exc_info:
+        graphql_env.document_from_string('{ hello }')
+
+    assert str(exc_info.value) == "Document not ready yet."
+
+    assert not backend.reached
+    e.wait()
+    assert backend.reached
+    doc = graphql_env.document_from_string('{ hello }')
+    assert isinstance(doc, GraphQLDocument)

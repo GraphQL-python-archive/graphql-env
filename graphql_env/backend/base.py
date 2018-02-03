@@ -4,17 +4,24 @@ class GraphQLBackend(object):
             cache = {}
         self._cache = cache
 
+    def document_from_cache(self, key):
+        if self._cache and key in self._cache:
+            return self._cache[key]
+
+    def document_to_cache(self, key, document):
+        if self._cache is not None:
+            self._cache[key] = document
+
     def document_from_cache_or_string(self, schema, request_string, key):
         '''This method should return a GraphQLQuery'''
-        if not key or self._cache is None:
-            # We return without caching
-            return self.document_from_string(schema, request_string)
+        cached_document = self.document_from_cache(key)
+        if cached_document:
+            return cached_document
 
-        if key not in self._cache:
-            self._cache[key] = self.document_from_string(
-                schema, request_string)
-
-        return self._cache[key]
+        # If is not in cache
+        document = self.document_from_string(schema, request_string)
+        self.document_to_cache(key, document)
+        return document
 
     def document_from_string(self, schema, request_string):
         raise NotImplementedError(
