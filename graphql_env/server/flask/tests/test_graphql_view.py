@@ -108,7 +108,7 @@ def test_errors_when_missing_operation_name(client):
         mutation TestMutation { writeTest { test } }
         '''))
 
-    # assert response.status_code == 400
+    assert response.status_code == 500
     assert response_json(response) == {
         'errors': [{
             'message':
@@ -382,7 +382,7 @@ def test_handles_syntax_errors_caught_by_graphql(client):
 def test_handles_errors_caused_by_a_lack_of_query(client):
     response = client.get(url_string())
 
-    assert response.status_code == 400
+    assert response.status_code == 500
     assert response_json(response) == {
         'errors': [{
             'message': 'Must provide query string.'
@@ -459,12 +459,12 @@ def test_passes_request_into_request_context(client):
     assert response_json(response) == {'data': {'request': 'testing'}}
 
 
-# @pytest.mark.parametrize('app', [create_app(context="CUSTOM CONTEXT")])
-# def test_supports_pretty_printing(client):
-#     response = client.get(url_string(query='{context}'))
+@pytest.mark.parametrize('app', [create_app(get_context=lambda:"CUSTOM CONTEXT")])
+def test_supports_pretty_printing(client):
+    response = client.get(url_string(query='{context}'))
 
-#     assert response.status_code == 200
-#     assert response_json(response) == {'data': {'context': 'CUSTOM CONTEXT'}}
+    assert response.status_code == 200
+    assert response_json(response) == {'data': {'context': 'CUSTOM CONTEXT'}}
 
 
 def test_post_multipart_data(client):

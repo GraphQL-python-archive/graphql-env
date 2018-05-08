@@ -139,7 +139,13 @@ class GraphQLView(View):
         if self.graphiql and self.can_display_graphiql():
             return self.render_graphiql(graphql_params, execution_result)
 
-        if execution_result.data is None and execution_result.errors:
-            status = 400
+        # If no data was included in the result, that indicates a runtime query
+        # error, indicate as such with a generic status code.
+        # Note: Information about the error itself will still be contained in
+        # the resulting JSON payload.
+        # http://facebook.github.io/graphql/#sec-Data
+
+        if status == 200 and execution_result and execution_result.data is None:
+            status = 500
 
         return self.serialize(execution_result), status

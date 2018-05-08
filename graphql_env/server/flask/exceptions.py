@@ -19,6 +19,7 @@ class InvalidVariablesJSONError(GraphQLHTTPError):
 
 
 class HTTPMethodNotAllowed(GraphQLHTTPError):
+    status_code = 405
     default_detail = 'GraphQL only supports GET and POST requests.'
 
 
