@@ -71,9 +71,6 @@ class GraphQLView(View):
     def get_middleware(self):
         return self.middleware
 
-    def get_executor(self):
-        return self.executor
-
     def execute(self, *args, **kwargs):
         if self.executor:
             kwargs['executor'] = self.executor
