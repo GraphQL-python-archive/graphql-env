@@ -1,5 +1,5 @@
 from flask import Flask
-from .. import graphql_view
+from .. import GraphQLView
 
 from .schema import Schema
 from graphql_env import GraphQLEnvironment, GraphQLCoreBackend
@@ -19,12 +19,9 @@ def create_app(path='/graphql', environment=None, **kwargs):
         # )
     )
 
-    def graphql():
-        return graphql_view(graphql_env, **kwargs)
-
     app.add_url_rule(
         path,
-        view_func=graphql,
+        view_func=GraphQLView.as_view('graphql', env=graphql_env, **kwargs),
         methods=['GET', 'POST', 'PUT', 'DELETE'],
         endpoint='graphql')
     return app

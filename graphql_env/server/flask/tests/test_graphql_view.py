@@ -163,6 +163,7 @@ def test_allows_mutation_to_exist_within_a_get(client):
 def test_allows_post_with_json_encoding(client):
     response = client.post(
         url_string(), data=j(query='{test}'), content_type='application/json')
+
     assert response.status_code == 200
     assert response_json(response) == {'data': {'test': "Hello World"}}
 
@@ -458,12 +459,12 @@ def test_passes_request_into_request_context(client):
     assert response_json(response) == {'data': {'request': 'testing'}}
 
 
-@pytest.mark.parametrize('app', [create_app(context="CUSTOM CONTEXT")])
-def test_supports_pretty_printing(client):
-    response = client.get(url_string(query='{context}'))
+# @pytest.mark.parametrize('app', [create_app(context="CUSTOM CONTEXT")])
+# def test_supports_pretty_printing(client):
+#     response = client.get(url_string(query='{context}'))
 
-    assert response.status_code == 200
-    assert response_json(response) == {'data': {'context': 'CUSTOM CONTEXT'}}
+#     assert response.status_code == 200
+#     assert response_json(response) == {'data': {'context': 'CUSTOM CONTEXT'}}
 
 
 def test_post_multipart_data(client):

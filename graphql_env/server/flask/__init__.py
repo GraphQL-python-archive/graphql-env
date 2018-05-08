@@ -1,1 +1,1 @@
-from .graphql_view import graphql_view
+from .graphql_view import GraphQLView

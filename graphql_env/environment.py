@@ -1,13 +1,12 @@
 from .backend import GraphQLBackend, get_default_backend, GraphQLDocument
-from .utils import get_unique_query_id, get_unique_schema_id
+from .utils import get_unique_document_id, get_unique_schema_id
 from ._compat import string_types
 from .params import GraphQLParams
 
 
 class GraphQLEnvironment(object):
-    def __init__(self, schema, middleware=None, backend=None, store=None):
+    def __init__(self, schema, backend=None, store=None):
         self.schema = schema
-        self.middleware = middleware
         if backend is None:
             backend = get_default_backend()
         else:
@@ -22,20 +21,20 @@ class GraphQLEnvironment(object):
         """Load a document from a string. This parses the source given and
         returns a :class:`GraphQLDocument` object.
         """
-        key = (self.schema_key, get_unique_query_id(source))
+        key = (self.schema_key, get_unique_document_id(source))
         document = self.backend.document_from_cache_or_string(
             self.schema, source, key=key)
         return document
 
-    def load_document(self, query_id):
+    def load_document(self, document_id):
         """
-            Load a document given a query_id
+            Load a document given a document_id
         """
         if not self.store:
             raise Exception(
                 "The GraphQL Environment doesn't have set any store.")
 
-        document = self.store[query_id]
+        document = self.store[document_id]
 
         if isinstance(document, string_types):
             return self.document_from_string(document)
@@ -47,8 +46,8 @@ class GraphQLEnvironment(object):
             format(repr(document)))
 
     def get_document_from_params(self, params):
-        if params.query_id:
-            return self.load_document(params.query_id)
+        if params.document_id:
+            return self.load_document(params.document_id)
         return self.document_from_string(params.query)
 
     def __call__(self,
