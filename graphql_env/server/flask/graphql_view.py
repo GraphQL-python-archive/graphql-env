@@ -2,14 +2,19 @@ from __future__ import absolute_import
 
 import json
 import six
-from graphql.error import GraphQLError, format_error as format_graphql_error
 from graphql.execution import ExecutionResult
 from flask import jsonify, request
 from flask.views import View
 
 from .graphiql import render_graphiql
 from .exceptions import GraphQLHTTPError, InvalidJSONError, HTTPMethodNotAllowed
-from .utils import params_from_http_request, execution_result_to_dict, ALL_OPERATIONS, QUERY_OPERATION
+from .utils import (
+    params_from_http_request,
+    execution_result_to_dict,
+    ALL_OPERATIONS,
+    QUERY_OPERATION,
+    format_error
+)
 from graphql_env import GraphQLEnvironment, GraphQLCoreBackend
 
 
@@ -20,7 +25,7 @@ class GraphQLView(View):
     env = None
     graphiql = False
     graphiql_version = None
-    format_error = None
+    format_error = staticmethod(format_error)
     graphiql_template = None
     graphiql_html_title = None
     middleware = None
@@ -74,13 +79,6 @@ class GraphQLView(View):
 
     def get_executor(self):
         return self.executor
-    
-    @staticmethod
-    def format_error(error):
-        if isinstance(error, GraphQLError):
-            return format_graphql_error(error)
-
-        return {'message': six.text_type(error)}
 
     def execute(self, *args, **kwargs):
         if self.execute_args:

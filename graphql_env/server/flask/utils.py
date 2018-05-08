@@ -1,6 +1,7 @@
 import json
 import six
 
+from graphql.error import GraphQLError, format_error as format_graphql_error
 from ...params import GraphQLParams
 from .exceptions import InvalidVariablesJSONError, MissingQueryError
 
@@ -41,3 +42,10 @@ def execution_result_to_dict(execution_result, format_error):
     if execution_result.data and not execution_result.invalid:
         data['data'] = execution_result.data
     return data
+
+
+def format_error(error):
+    if isinstance(error, GraphQLError):
+        return format_graphql_error(error)
+
+    return {'message': six.text_type(error)}
