@@ -30,7 +30,6 @@ class GraphQLView(View):
     graphiql_html_title = None
     middleware = None
     store = None
-    execute_args = None
     batch = False
 
     methods = ['GET', 'POST', 'PUT', 'DELETE']
@@ -62,11 +61,6 @@ class GraphQLView(View):
                 backend=self.backend,
                 store=self.store
             )
-
-        self.execute_args = self.execute_args or {}
-
-        if self.executor:
-            self.execute_args['executor'] = self.executor
             
     def get_root_value(self):
         return self.root_value
@@ -81,8 +75,8 @@ class GraphQLView(View):
         return self.executor
 
     def execute(self, *args, **kwargs):
-        if self.execute_args:
-            kwargs = dict(kwargs, **self.execute_args)
+        if self.executor:
+            kwargs['executor'] = self.executor
         return self.env(*args, **kwargs)
 
     def get_allowed_operations(self):
