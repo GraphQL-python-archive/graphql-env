@@ -14,9 +14,10 @@ class GraphQLCachedBackend(GraphQLBackend):
 
     def get_key_for_schema_and_document_string(self, schema, request_string):
         '''This method returns a unique key given a schema and a request_string'''
-        schema_id = get_unique_schema_id(schema)
-        document_id = get_unique_document_id(request_string)
-        return (schema_id, document_id)
+        return hash((schema, request_string))
+        # schema_id = get_unique_schema_id(schema)
+        # document_id = get_unique_document_id(request_string)
+        # return (schema_id, document_id)
 
     def document_from_string(self, schema, request_string):
         '''This method returns a GraphQLQuery (from cache if present)'''
