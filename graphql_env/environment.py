@@ -1,5 +1,4 @@
 from .backend import GraphQLBackend, get_default_backend, GraphQLDocument
-from .utils import get_unique_document_id, get_unique_schema_id
 from ._compat import string_types
 from .params import GraphQLParams
 
@@ -15,16 +14,12 @@ class GraphQLEnvironment(object):
                 GraphQLBackend), "backend must be instance of GraphQLBackend"
         self.backend = backend
         self.store = store
-        self.schema_key = get_unique_schema_id(schema)
 
     def document_from_string(self, source):
         """Load a document from a string. This parses the source given and
         returns a :class:`GraphQLDocument` object.
         """
-        key = (self.schema_key, get_unique_document_id(source))
-        document = self.backend.document_from_cache_or_string(
-            self.schema, source, key=key)
-        return document
+        return self.backend.document_from_string(self.schema, source)
 
     def load_document(self, document_id):
         """
