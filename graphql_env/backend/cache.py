@@ -1,5 +1,6 @@
-from ..utils import get_unique_document_id, get_unique_schema_id
 from .base import GraphQLBackend
+
+# from .utils import get_unique_document_id, get_unique_schema_id
 
 
 class GraphQLCachedBackend(GraphQLBackend):
