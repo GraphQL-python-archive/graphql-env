@@ -4,8 +4,8 @@ class GraphQLBackend(object):
 
     def document_from_string(self, schema, request_string):
         raise NotImplementedError(
-            "document_from_string method not implemented in {}.".format(
-                self.__class__))
+            "document_from_string method not implemented in {}.".format(self.__class__)
+        )
 
 
 class GraphQLDocument(object):
@@ -27,4 +27,5 @@ class GraphQLDocument(object):
 
     def execute(self, *args, **kwargs):
         raise NotImplementedError(
-            "execute method not implemented in {}.".format(self.__class__))
+            "execute method not implemented in {}.".format(self.__class__)
+        )
