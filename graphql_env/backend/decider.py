@@ -15,7 +15,6 @@ class GraphQLDeciderBackend(GraphQLBackend):
             try:
                 return backend.document_from_string(schema, request_string)
             except Exception, e:
-                print(e)
                 continue
 
         raise Exception(
