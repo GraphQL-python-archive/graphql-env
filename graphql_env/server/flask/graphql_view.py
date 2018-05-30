@@ -15,7 +15,7 @@ from .utils import (
     QUERY_OPERATION,
     format_error
 )
-from graphql_env import GraphQLEnvironment, GraphQLCoreBackend
+from graphql_env import GraphQLEnvironment, get_default_backend
 
 
 class GraphQLView(View):
@@ -54,7 +54,7 @@ class GraphQLView(View):
                 'Cant set env and backend at the same time. Please use GraphQLEnv(backend=...)'
             )
         else:
-            self.backend = self.backend or GraphQLCoreBackend()
+            self.backend = self.backend or get_default_backend()
             assert isinstance(self.schema, GraphQLSchema), 'A Schema is required to be provided to GraphQLView.'
             self.env = GraphQLEnvironment(
                 self.schema,
