@@ -2,6 +2,7 @@ from __future__ import absolute_import
 
 import json
 import six
+from graphql import GraphQLSchema
 from graphql.execution import ExecutionResult
 from flask import jsonify, request
 from flask.views import View
@@ -13,7 +14,7 @@ from .utils import (
     execution_result_to_dict,
     ALL_OPERATIONS,
     QUERY_OPERATION,
-    format_error
+    format_error as default_format_error,
 )
 from graphql_env import GraphQLEnvironment, get_default_backend
 
@@ -21,59 +22,94 @@ from graphql_env import GraphQLEnvironment, get_default_backend
 class GraphQLView(View):
     schema = None
     executor = None
-    root_value = None
+    root = None
     env = None
     graphiql = False
     graphiql_version = None
-    format_error = staticmethod(format_error)
     graphiql_template = None
     graphiql_html_title = None
+    format_error = None
+    context = None
     middleware = None
     store = None
     batch = False
 
-    methods = ['GET', 'POST', 'PUT', 'DELETE']
+    methods = ["GET", "POST", "PUT", "DELETE"]
 
-    def __init__(self, **kwargs):
-        super(GraphQLView, self).__init__()
-        for key, value in kwargs.items():
-            if hasattr(self, key):
-                setattr(self, key, value)
-
-        if self.batch:
+    def __init__(
+        self,
+        schema=None,
+        executor=None,
+        root=None,
+        root_value=None,
+        env=None,
+        graphiql=False,
+        graphiql_version=None,
+        graphiql_template=None,
+        graphiql_html_title=None,
+        format_error=None,
+        context=None,
+        middleware=None,
+        store=None,
+        batch=False,
+    ):
+        if schema:
+            assert isinstance(
+                schema, GraphQLSchema
+            ), "A Schema is required to be provided to GraphQLView."
+        if batch:
             raise Exception("GraphQLView batch is no longer supported.")
 
+        self.schema = schema
+        self.executor = executor
+        self.root = root or root_value
+        self.env = env
+        self.graphiql = graphiql
+        self.graphiql_version = graphiql_version
+        self.graphiql_template = graphiql_template
+        self.graphiql_html_title = graphiql_html_title
+        self.format_error = format_error or default_format_error
+        self.context = context
+        self.middleware = middleware
+        self.store = store
+
         if self.env:
-            assert not self.schema, (
-                'Cant set env and schema at the same time. Please use GraphQLEnv(schema=...)'
+            assert (
+                not self.schema
+            ), (
+                "Cant set env and schema at the same time. Please use GraphQLEnv(schema=...)"
             )
-            assert not self.store, (
-                'Cant set env and store at the same time. Please use GraphQLEnv(store=...)'
+            assert (
+                not self.store
+            ), (
+                "Cant set env and store at the same time. Please use GraphQLEnv(store=...)"
             )
-            assert not self.store, (
-                'Cant set env and backend at the same time. Please use GraphQLEnv(backend=...)'
+            assert (
+                not self.store
+            ), (
+                "Cant set env and backend at the same time. Please use GraphQLEnv(backend=...)"
             )
         else:
             self.backend = self.backend or get_default_backend()
-            assert isinstance(self.schema, GraphQLSchema), 'A Schema is required to be provided to GraphQLView.'
+            assert isinstance(
+                self.schema, GraphQLSchema
+            ), "A Schema is required to be provided to GraphQLView."
             self.env = GraphQLEnvironment(
-                self.schema,
-                backend=self.backend,
-                store=self.store
+                self.schema, backend=self.backend, store=self.store
             )
-            
-    def get_root_value(self):
-        return self.root_value
+
+    def get_root(self):
+        return self.root
 
     def get_context(self):
-        return request
+        return self.context or request
 
     def get_middleware(self):
         return self.middleware
 
     def execute(self, *args, **kwargs):
         if self.executor:
-            kwargs['executor'] = self.executor
+            kwargs["executor"] = self.executor
         return self.env(*args, **kwargs)
 
     def get_allowed_operations(self):
@@ -86,30 +122,33 @@ class GraphQLView(View):
         return jsonify(data)
 
     def can_display_graphiql(self):
-        if request.method != 'GET':
+        if request.method != "GET":
             return False
-        if 'raw' in request.args:
+        if "raw" in request.args:
             return False
 
-        best = request.accept_mimetypes \
-            .best_match(['application/json', 'text/html'])
+        best = request.accept_mimetypes.best_match(["application/json", "text/html"])
 
-        return best == 'text/html' and \
-            request.accept_mimetypes[best] > \
-            request.accept_mimetypes['application/json']
+        return (
+            best == "text/html"
+            and request.accept_mimetypes[best]
+            > request.accept_mimetypes["application/json"]
+        )
 
     def get_graphql_params(self):
         data = {}
         content_type = request.mimetype
-        if content_type == 'application/graphql':
-            data = {'query': request.data.decode('utf8')}
-        elif content_type == 'application/json':
+        if content_type == "application/graphql":
+            data = {"query": request.data.decode("utf8")}
+        elif content_type == "application/json":
             try:
                 data = request.get_json()
             except:
                 raise InvalidJSONError()
-        elif content_type in ('application/x-www-form-urlencoded',
-                            'multipart/form-data', ):
+        elif content_type in (
+            "application/x-www-form-urlencoded",
+            "multipart/form-data",
+        ):
             data = request.form.to_dict()
 
         query_params = request.args.to_dict()
@@ -119,14 +158,14 @@ class GraphQLView(View):
         graphql_params = None
         status = 200
         try:
-            if request.method not in ['GET', 'POST']:
+            if request.method not in ["GET", "POST"]:
                 raise HTTPMethodNotAllowed()
             execution_result = self.execute(
                 self.get_graphql_params(),
-                root=self.get_root_value(),
+                root=self.get_root(),
                 context=self.get_context(),
                 middleware=self.get_middleware(),
-                allowed_operations=self.get_allowed_operations()
+                allowed_operations=self.get_allowed_operations(),
             )
         except Exception as error:
             if isinstance(error, GraphQLHTTPError):

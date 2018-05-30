@@ -14,9 +14,11 @@ class GraphQLDeciderBackend(GraphQLBackend):
         for backend in self.backends:
             try:
                 return backend.document_from_string(schema, request_string)
-            except Exception, e:
+            except Exception as e:
                 continue
 
         raise Exception(
-            "GraphQLDeciderBackend was not able to retrieve a document. Backends tried: {}".
-            format(repr(self.backends)))
+            "GraphQLDeciderBackend was not able to retrieve a document. Backends tried: {}".format(
+                repr(self.backends)
+            )
+        )

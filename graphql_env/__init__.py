@@ -2,24 +2,30 @@
 """Top-level package for GraphQL Environment."""
 
 __author__ = """Syrus Akbary"""
-__email__ = 'me@syrusakbary.com'
-__version__ = '0.1.0'
+__email__ = "me@syrusakbary.com"
+__version__ = "0.1.0"
 
 from .environment import GraphQLEnvironment
-from .backend import (GraphQLBackend, GraphQLDocument, GraphQLCoreBackend,
-                      GraphQLDeciderBackend, GraphQLCachedBackend,
-                      get_default_backend, set_default_backend)
+from .backend import (
+    GraphQLBackend,
+    GraphQLDocument,
+    GraphQLCoreBackend,
+    GraphQLDeciderBackend,
+    GraphQLCachedBackend,
+    get_default_backend,
+    set_default_backend,
+)
 
 GraphQLEnv = GraphQLEnvironment
 
 __all__ = [
-    'GraphQLEnv',
-    'GraphQLEnvironment',
-    'GraphQLBackend',
-    'GraphQLDocument',
-    'GraphQLCachedBackend',
-    'GraphQLCoreBackend',
-    'GraphQLDeciderBackend',
-    'get_default_backend',
-    'set_default_backend',
+    "GraphQLEnv",
+    "GraphQLEnvironment",
+    "GraphQLBackend",
+    "GraphQLDocument",
+    "GraphQLCachedBackend",
+    "GraphQLCoreBackend",
+    "GraphQLDeciderBackend",
+    "get_default_backend",
+    "set_default_backend",
 ]

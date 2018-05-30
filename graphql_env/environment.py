@@ -10,8 +10,8 @@ class GraphQLEnvironment(object):
             backend = get_default_backend()
         else:
             assert isinstance(
-                backend,
-                GraphQLBackend), "backend must be instance of GraphQLBackend"
+                backend, GraphQLBackend
+            ), "backend must be instance of GraphQLBackend"
         self.backend = backend
         self.store = store
 
@@ -26,8 +26,7 @@ class GraphQLEnvironment(object):
             Load a document given a document_id
         """
         if not self.store:
-            raise Exception(
-                "The GraphQL Environment doesn't have set any store.")
+            raise Exception("The GraphQL Environment doesn't have set any store.")
 
         document = self.store[document_id]
 
@@ -37,20 +36,24 @@ class GraphQLEnvironment(object):
             return document
 
         raise Exception(
-            "Document returned from the store must be an string or a GraphQLDocument. Received {}.".
-            format(repr(document)))
+            "Document returned from the store must be an string or a GraphQLDocument. Received {}.".format(
+                repr(document)
+            )
+        )
 
     def get_document_from_params(self, params):
         if params.document_id:
             return self.load_document(params.document_id)
         return self.document_from_string(params.query)
 
-    def __call__(self,
-                 graphql_params,
-                 root=None,
-                 context=None,
-                 middleware=None,
-                 allowed_operations=None):
+    def __call__(
+        self,
+        graphql_params,
+        root=None,
+        context=None,
+        middleware=None,
+        allowed_operations=None,
+    ):
         assert isinstance(
             graphql_params, GraphQLParams
         ), "GraphQL params must be an instance of GraphQLParams."
@@ -62,4 +65,5 @@ class GraphQLEnvironment(object):
             middleware=middleware,
             operation_name=graphql_params.operation_name,
             variables=graphql_params.variables,
-            allowed_operations=allowed_operations)
+            allowed_operations=allowed_operations,
+        )
