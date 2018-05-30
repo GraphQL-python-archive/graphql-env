@@ -14,7 +14,7 @@ def resolve_raises(*_):
     raise Exception("Throws!")
 
 
-QueryRootType = GraphQLObjectType(
+query_root_type = GraphQLObjectType(
     name="QueryRoot",
     fields={
         "thrower": GraphQLField(GraphQLNonNull(GraphQLString), resolver=resolve_raises),
@@ -35,11 +35,13 @@ QueryRootType = GraphQLObjectType(
     },
 )
 
-MutationRootType = GraphQLObjectType(
+mutation_root_type = GraphQLObjectType(
     name="MutationRoot",
     fields={
-        "writeTest": GraphQLField(type=QueryRootType, resolver=lambda *_: QueryRootType)
+        "writeTest": GraphQLField(
+            type=query_root_type, resolver=lambda *_: query_root_type
+        )
     },
 )
 
-Schema = GraphQLSchema(QueryRootType, MutationRootType)
+schema = GraphQLSchema(query_root_type, mutation_root_type)

@@ -5,7 +5,6 @@ __author__ = """Syrus Akbary"""
 __email__ = "me@syrusakbary.com"
 __version__ = "0.1.0"
 
-from .environment import GraphQLEnvironment
 from .backend import (
     GraphQLBackend,
     GraphQLDocument,
@@ -15,12 +14,9 @@ from .backend import (
     get_default_backend,
     set_default_backend,
 )
-
-GraphQLEnv = GraphQLEnvironment
+from .loader import GraphQLLoader
 
 __all__ = [
-    "GraphQLEnv",
-    "GraphQLEnvironment",
     "GraphQLBackend",
     "GraphQLDocument",
     "GraphQLCachedBackend",
@@ -28,4 +24,5 @@ __all__ = [
     "GraphQLDeciderBackend",
     "get_default_backend",
     "set_default_backend",
+    "GraphQLLoader",
 ]

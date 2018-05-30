@@ -16,14 +16,13 @@ from .utils import (
     QUERY_OPERATION,
     format_error as default_format_error,
 )
-from graphql_env import GraphQLEnvironment, get_default_backend
+from graphql_env.loader import GraphQLLoader
 
 
-class GraphQLView(View):
+class GraphQLBase(object):
     schema = None
     executor = None
     root = None
-    env = None
     graphiql = False
     graphiql_version = None
     graphiql_template = None
@@ -31,10 +30,7 @@ class GraphQLView(View):
     format_error = None
     context = None
     middleware = None
-    store = None
-    batch = False
-
-    methods = ["GET", "POST", "PUT", "DELETE"]
+    loader = None
 
     def __init__(
         self,
@@ -50,8 +46,9 @@ class GraphQLView(View):
         format_error=None,
         context=None,
         middleware=None,
-        store=None,
+        loader=None,
         batch=False,
+        **kwargs
     ):
         if schema:
             assert isinstance(
@@ -71,32 +68,17 @@ class GraphQLView(View):
         self.format_error = format_error or default_format_error
         self.context = context
         self.middleware = middleware
-        self.store = store
+        self.loader = loader or GraphQLLoader()
 
-        if self.env:
-            assert (
-                not self.schema
-            ), (
-                "Cant set env and schema at the same time. Please use GraphQLEnv(schema=...)"
-            )
-            assert (
-                not self.store
-            ), (
-                "Cant set env and store at the same time. Please use GraphQLEnv(store=...)"
-            )
-            assert (
-                not self.store
-            ), (
-                "Cant set env and backend at the same time. Please use GraphQLEnv(backend=...)"
-            )
-        else:
-            self.backend = self.backend or get_default_backend()
-            assert isinstance(
-                self.schema, GraphQLSchema
-            ), "A Schema is required to be provided to GraphQLView."
-            self.env = GraphQLEnvironment(
-                self.schema, backend=self.backend, store=self.store
-            )
+        super(GraphQLBase, self).__init__(**kwargs)
+
+
+class GraphQLView(GraphQLBase, View):
+
+    methods = ["GET", "POST", "PUT", "DELETE"]
+
+    def get_schema(self):
+        return self.schema
 
     def get_root(self):
         return self.root
@@ -107,10 +89,30 @@ class GraphQLView(View):
     def get_middleware(self):
         return self.middleware
 
-    def execute(self, *args, **kwargs):
+    def execute(
+        self,
+        schema,
+        graphql_params,
+        root=None,
+        context=None,
+        middleware=None,
+        allowed_operations=None,
+    ):
+        extra = {}
+        # We only do this to provide a compatibility layer with previous vesions
         if self.executor:
-            kwargs["executor"] = self.executor
-        return self.env(*args, **kwargs)
+            extra["executor"] = self.executor
+
+        document = self.loader.get_document_from_params(schema, graphql_params)
+        return document.execute(
+            root=root,
+            context=context,
+            middleware=middleware,
+            operation_name=graphql_params.operation_name,
+            variables=graphql_params.variables,
+            allowed_operations=allowed_operations,
+            **extra
+        )
 
     def get_allowed_operations(self):
         if request.method == "GET":
@@ -160,7 +162,9 @@ class GraphQLView(View):
         try:
             if request.method not in ["GET", "POST"]:
                 raise HTTPMethodNotAllowed()
+            schema = self.get_schema()
             execution_result = self.execute(
+                schema,
                 self.get_graphql_params(),
                 root=self.get_root(),
                 context=self.get_context(),
