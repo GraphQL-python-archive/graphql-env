@@ -2,15 +2,15 @@ import json
 import six
 
 from graphql.error import GraphQLError, format_error as format_graphql_error
-from ...params import GraphQLParams
+from ..params import GraphQLParams
 from .exceptions import InvalidVariablesJSONError, MissingQueryError
 
 
-QUERY_OPERATION = set(("query",))
+QUERY_OPERATION = {"query"}
 
-MUTATION_OPERATION = set(("mutation",))
+MUTATION_OPERATION = {"mutation"}
 
-SUBSCRIPTION_OPERATION = set(("subscription",))
+SUBSCRIPTION_OPERATION = {"subscription"}
 
 ALL_OPERATIONS = QUERY_OPERATION | MUTATION_OPERATION | SUBSCRIPTION_OPERATION
 
