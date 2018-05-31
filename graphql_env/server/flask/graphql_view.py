@@ -38,7 +38,6 @@ class GraphQLBase(object):
         executor=None,
         root=None,
         root_value=None,
-        env=None,
         graphiql=False,
         graphiql_version=None,
         graphiql_template=None,
@@ -60,7 +59,6 @@ class GraphQLBase(object):
         self.schema = schema
         self.executor = executor
         self.root = root or root_value
-        self.env = env
         self.graphiql = graphiql
         self.graphiql_version = graphiql_version
         self.graphiql_template = graphiql_template
