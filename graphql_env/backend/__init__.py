@@ -3,10 +3,13 @@ from .core import GraphQLCoreBackend
 from .decider import GraphQLDeciderBackend
 from .cache import GraphQLCachedBackend
 
-_default_backend = GraphQLCoreBackend()
+_default_backend = None
 
 
 def get_default_backend():
+    global _default_backend
+    if _default_backend is None:
+        _default_backend = GraphQLCoreBackend()
     return _default_backend
 
 
