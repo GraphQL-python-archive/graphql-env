@@ -2,106 +2,144 @@ from __future__ import absolute_import
 
 import json
 import six
-from graphql.error import GraphQLError, format_error as default_format_error
 from graphql.execution import ExecutionResult
 from flask import jsonify, request
+from flask.views import View
 
 from .graphiql import render_graphiql
-from .exceptions import GraphQLHTTPError, InvalidJSONError, HTTPMethodNotAllowed
-from .utils import params_from_http_request
+from ..exceptions import GraphQLHTTPError, InvalidJSONError, HTTPMethodNotAllowed
+from ..utils import (
+    params_from_http_request,
+    execution_result_to_dict,
+    ALL_OPERATIONS,
+    QUERY_OPERATION,
+)
+from ..base import GraphQLBase
 
 
-def can_display_graphiql(request):
-    if request.method != 'GET':
-        return False
-    if 'raw' in request.args:
-        return False
+class GraphQLView(GraphQLBase, View):
 
-    best = request.accept_mimetypes \
-        .best_match(['application/json', 'text/html'])
+    methods = ["GET", "POST", "PUT", "DELETE"]
 
-    return best == 'text/html' and \
-        request.accept_mimetypes[best] > \
-        request.accept_mimetypes['application/json']
+    def get_schema(self):
+        return self.schema
 
+    def get_root(self):
+        return self.root
 
-def get_graphql_params(request):
-    data = {}
-    content_type = request.mimetype
-    if content_type == 'application/graphql':
-        data = {'query': request.data.decode('utf8')}
-    elif content_type == 'application/json':
-        try:
-            data = request.get_json()
-        except:
-            raise InvalidJSONError()
-    elif content_type in ('application/x-www-form-urlencoded',
-                          'multipart/form-data', ):
-        data = request.form.to_dict()
+    def get_context(self):
+        return self.context or request
 
-    query_params = request.args.to_dict()
-    return params_from_http_request(query_params, data)
+    def get_middleware(self):
+        return self.middleware
 
+    def execute(
+        self,
+        schema,
+        graphql_params,
+        root=None,
+        context=None,
+        middleware=None,
+        allowed_operations=None,
+    ):
+        extra = {}
+        # We only do this to provide a compatibility layer with previous vesions
+        if self.executor:
+            extra["executor"] = self.executor
 
-ALL_OPERATIONS = set(("query", "mutation", "subscription"))
-
-
-def get_allowed_operations(request):
-    if request.method == "GET":
-        return set(("query", ))
-    return ALL_OPERATIONS
-
-
-Request = object()
-
-
-def execution_result_to_dict(execution_result, format_error):
-    data = {}
-    if execution_result.errors:
-        data['errors'] = [
-            format_error(error) for error in execution_result.errors
-        ]
-    if execution_result.data and not execution_result.invalid:
-        data['data'] = execution_result.data
-    return data
-
-
-def default_serialize(execution_result, format_error=default_format_error):
-    data = execution_result_to_dict(execution_result, format_error)
-    return jsonify(data)  #, 200 if execution_result.errors else 400
-
-
-def graphql_view(execute,
-                 root=None,
-                 graphiql=False,
-                 context=Request,
-                 middleware=None,
-                 serialize=default_serialize,
-                 allowed_operations=None):
-    graphql_params = None
-    allowed_operations = get_allowed_operations(request)
-    status = 200
-    try:
-        if request.method not in ['GET', 'POST']:
-            raise HTTPMethodNotAllowed()
-        graphql_params = get_graphql_params(request)
-        if context is Request:
-            context = request
-        execution_result = execute(
-            graphql_params,
+        document = self.loader.get_document_from_params(schema, graphql_params)
+        return document.execute(
             root=root,
             context=context,
             middleware=middleware,
-            allowed_operations=allowed_operations)
-    except Exception as error:
-        if isinstance(error, GraphQLHTTPError):
-            status = error.status_code
-        execution_result = ExecutionResult(errors=[error])
+            operation_name=graphql_params.operation_name,
+            variables=graphql_params.variables,
+            allowed_operations=allowed_operations,
+            **extra
+        )
 
-    if graphiql and can_display_graphiql(request):
-        return render_graphiql(graphql_params, execution_result)
+    def get_allowed_operations(self):
+        if request.method == "GET":
+            return QUERY_OPERATION
+        return ALL_OPERATIONS
 
-    if execution_result.data is None and execution_result.errors:
-        status = 400
+    def serialize(self, execution_result):
+        return execution_result_to_dict(execution_result, self.format_error)
 
-    return serialize(execution_result), status
+    def can_display_graphiql(self):
+        if request.method != "GET":
+            return False
+        if "raw" in request.args:
+            return False
+
+        best = request.accept_mimetypes.best_match(["application/json", "text/html"])
+
+        return (
+            best == "text/html"
+            and request.accept_mimetypes[best]
+            > request.accept_mimetypes["application/json"]
+        )
+
+    def get_graphql_params(self):
+        data = {}
+        content_type = request.mimetype
+        if content_type == "application/graphql":
+            data = {"query": request.data.decode("utf8")}
+        elif content_type == "application/json":
+            try:
+                data = request.get_json()
+            except:
+                raise InvalidJSONError()
+        elif content_type in (
+            "application/x-www-form-urlencoded",
+            "multipart/form-data",
+        ):
+            data = request.form.to_dict()
+
+        query_params = request.args.to_dict()
+        return params_from_http_request(query_params, data)
+
+    def render_graphiql(self, graphql_params, execution_result):
+        return render_graphiql(
+            graphql_params,
+            json.dumps(execution_result, indent=2, separators=(",", ": ")),
+            graphiql_version=self.graphiql_version,
+            graphiql_template=self.graphiql_template,
+            graphiql_html_title=self.graphiql_html_title,
+        )
+
+    def dispatch_request(self):
+        graphql_params = None
+        status = 200
+        try:
+            if request.method not in ["GET", "POST"]:
+                raise HTTPMethodNotAllowed()
+            schema = self.get_schema()
+            graphql_params = self.get_graphql_params()
+            execution_result = self.execute(
+                schema,
+                graphql_params,
+                root=self.get_root(),
+                context=self.get_context(),
+                middleware=self.get_middleware(),
+                allowed_operations=self.get_allowed_operations(),
+            )
+        except Exception as error:
+            if isinstance(error, GraphQLHTTPError):
+                status = error.status_code
+            execution_result = ExecutionResult(errors=[error])
+
+        # If no data was included in the result, that indicates a runtime query
+        # error, indicate as such with a generic status code.
+        # Note: Information about the error itself will still be contained in
+        # the resulting JSON payload.
+        # http://facebook.github.io/graphql/#sec-Data
+
+        if status == 200 and execution_result and execution_result.data is None:
+            status = 500
+
+        result = self.serialize(execution_result)
+        if self.graphiql and self.can_display_graphiql():
+            return self.render_graphiql(graphql_params, result)
+
+        return jsonify(result), status

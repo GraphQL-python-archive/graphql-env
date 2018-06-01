@@ -10,17 +10,18 @@ class GraphQLHTTPError(Exception):
 
 class InvalidJSONError(GraphQLHTTPError):
     status_code = 400
-    default_detail = 'POST body sent invalid JSON.'
+    default_detail = "POST body sent invalid JSON."
 
 
 class InvalidVariablesJSONError(GraphQLHTTPError):
     status_code = 400
-    default_detail = 'Variables are invalid JSON.'
+    default_detail = "Variables are invalid JSON."
 
 
 class HTTPMethodNotAllowed(GraphQLHTTPError):
-    default_detail = 'GraphQL only supports GET and POST requests.'
+    status_code = 405
+    default_detail = "GraphQL only supports GET and POST requests."
 
 
 class MissingQueryError(GraphQLHTTPError):
-    default_detail = 'Must provide query string.'
+    default_detail = "Must provide query string."
