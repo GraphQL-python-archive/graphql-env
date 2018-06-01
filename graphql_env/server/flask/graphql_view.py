@@ -64,8 +64,7 @@ class GraphQLView(GraphQLBase, View):
         return ALL_OPERATIONS
 
     def serialize(self, execution_result):
-        data = execution_result_to_dict(execution_result, self.format_error)
-        return jsonify(data)
+        return execution_result_to_dict(execution_result, self.format_error)
 
     def can_display_graphiql(self):
         if request.method != "GET":
@@ -100,6 +99,15 @@ class GraphQLView(GraphQLBase, View):
         query_params = request.args.to_dict()
         return params_from_http_request(query_params, data)
 
+    def render_graphiql(self, graphql_params, execution_result):
+        return render_graphiql(
+            graphql_params,
+            json.dumps(execution_result, indent=2, separators=(",", ": ")),
+            graphiql_version=self.graphiql_version,
+            graphiql_template=self.graphiql_template,
+            graphiql_html_title=self.graphiql_html_title,
+        )
+
     def dispatch_request(self):
         graphql_params = None
         status = 200
@@ -107,9 +115,10 @@ class GraphQLView(GraphQLBase, View):
             if request.method not in ["GET", "POST"]:
                 raise HTTPMethodNotAllowed()
             schema = self.get_schema()
+            graphql_params = self.get_graphql_params()
             execution_result = self.execute(
                 schema,
-                self.get_graphql_params(),
+                graphql_params,
                 root=self.get_root(),
                 context=self.get_context(),
                 middleware=self.get_middleware(),
@@ -120,9 +129,6 @@ class GraphQLView(GraphQLBase, View):
                 status = error.status_code
             execution_result = ExecutionResult(errors=[error])
 
-        if self.graphiql and self.can_display_graphiql():
-            return self.render_graphiql(graphql_params, execution_result)
-
         # If no data was included in the result, that indicates a runtime query
         # error, indicate as such with a generic status code.
         # Note: Information about the error itself will still be contained in
@@ -132,4 +138,8 @@ class GraphQLView(GraphQLBase, View):
         if status == 200 and execution_result and execution_result.data is None:
             status = 500
 
-        return self.serialize(execution_result), status
+        result = self.serialize(execution_result)
+        if self.graphiql and self.can_display_graphiql():
+            return self.render_graphiql(graphql_params, result)
+
+        return jsonify(result), status

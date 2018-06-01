@@ -103,10 +103,10 @@ add "&raw" to the end of the URL within a browser.
         onEditQuery: onEditQuery,
         onEditVariables: onEditVariables,
         onEditOperationName: onEditOperationName,
-        query: {{ params.query|tojson }},
+        query: {{ query|tojson }},
         response: {{ result|tojson }},
-        variables: {{ params.variables|tojson }},
-        operationName: {{ params.operation_name|tojson }},
+        variables: {{ variables|tojson }},
+        operationName: {{ operation_name|tojson }},
       }),
       document.body
     );
@@ -130,5 +130,7 @@ def render_graphiql(
         graphiql_version=graphiql_version,
         graphiql_html_title=graphiql_html_title,
         result=result,
-        params=params,
+        query=params and params.query,
+        variables=params and params.variables,
+        operation_name=params and params.operation_name,
     )
